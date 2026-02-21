@@ -158,9 +158,6 @@ bash
 
 python realtime/binance_stream.py
 
-
-This proves your system is **actually real-time**, not just claimed.
-
 ---
 
 ## 🧠 System Design Notes
