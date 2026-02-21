@@ -155,6 +155,7 @@ This module streams live cryptocurrency prices using WebSockets.
 
 ### Run live BTC stream
 bash
+
 python realtime/binance_stream.py
 
 
