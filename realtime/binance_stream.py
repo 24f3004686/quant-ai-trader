@@ -5,16 +5,39 @@ from collections import deque
 import pandas as pd
 from ta.momentum import RSIIndicator
 from ta.trend import MACD
+import sys
 
-# Binance trade stream for BTCUSDT
-BINANCE_WS = "wss://stream.binance.com:9443/ws/btcusdt@trade"
+# -----------------------------
+# Helper: Normalize symbol
+# -----------------------------
+def normalize_symbol(symbol: str) -> str:
+    """
+    Converts:
+    BTC-USD → btcusdt
+    ETH-USD → ethusdt
+    SOL-USD → solusdt
+    """
+    symbol = symbol.upper().strip()
 
-# Rolling buffer (last 100 prices)
-prices = deque(maxlen=100)
+    if symbol.endswith("-USD"):
+        base = symbol.replace("-USD", "")
+        return f"{base.lower()}usdt"
 
-async def stream_prices():
-    async with websockets.connect(BINANCE_WS) as ws:
-        print("📡 Connected to Binance WebSocket (BTCUSDT)")
+    # If user already passes btcusdt
+    return symbol.lower()
+
+# -----------------------------
+# Real-time stream
+# -----------------------------
+async def stream_prices(symbol="BTC-USD"):
+    binance_symbol = normalize_symbol(symbol)
+    ws_url = f"wss://stream.binance.com:9443/ws/{binance_symbol}@trade"
+
+    prices = deque(maxlen=100)
+
+    async with websockets.connect(ws_url) as ws:
+        print(f"📡 Connected to Binance WebSocket ({symbol})")
+        print("⏳ Waiting for live trades...\n")
 
         while True:
             msg = await ws.recv()
@@ -23,20 +46,33 @@ async def stream_prices():
             price = float(data["p"])
             prices.append(price)
 
-            if len(prices) >= 30:
-                analyze_realtime()
+            # Only compute indicators once we have enough data
+            if len(prices) >= 50:
+                analyze_realtime(prices, symbol)
 
-def analyze_realtime():
-    df = pd.Series(prices)
+# -----------------------------
+# Indicator computation
+# -----------------------------
+def analyze_realtime(prices, symbol):
+    series = pd.Series(prices)
 
-    rsi = RSIIndicator(df, 14).rsi().iloc[-1]
-    macd = MACD(df).macd().iloc[-1]
-    signal = MACD(df).macd_signal().iloc[-1]
+    macd_indicator = MACD(series)
+    rsi = RSIIndicator(series, 14).rsi().iloc[-1]
+    macd_val = macd_indicator.macd().iloc[-1]
+    signal_val = macd_indicator.macd_signal().iloc[-1]
 
     print(
-        f"📊 LIVE BTC | Price: {prices[-1]:.2f} | "
-        f"RSI: {rsi:.2f} | MACD: {macd:.2f}"
+        f"📊 LIVE {symbol} | "
+        f"Price: {prices[-1]:.2f} | "
+        f"RSI: {rsi:.2f} | "
+        f"MACD: {macd_val:.6f} | "
+        f"Signal: {signal_val:.6f}"
     )
 
+# -----------------------------
+# Entry point
+# -----------------------------
 if __name__ == "__main__":
-    asyncio.run(stream_prices())
+    # Default BTC-USD, allow any crypto
+    symbol = sys.argv[1] if len(sys.argv) > 1 else "BTC-USD"
+    asyncio.run(stream_prices(symbol))
