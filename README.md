@@ -153,10 +153,10 @@ In addition to historical backtesting, this project supports **true real-time, e
 
 This module streams live cryptocurrency prices using WebSockets.
 
-### Run live BTC stream
+### Run live crypto stream
 bash
 
-python realtime/binance_stream.py
+python realtime/binance_stream.py BTC-USD/ETH-USD/etc 
 
 ---
 
@@ -167,3 +167,11 @@ python realtime/binance_stream.py
 - Real-time analysis uses an **event-driven WebSocket architecture**
 - AI (LLM) calls are decoupled and rate-limited for scalability
 - The system is designed for extensibility (additional exchanges, assets, or strategies)
+
+## 🔧 Real-Time Indicator Stability Notes
+
+- Real-time indicators are computed on a **rolling price buffer** to ensure statistical stability.
+- RSI calculations begin only after sufficient trade events are collected.
+- MACD values are computed after a larger buffer threshold to allow EMA convergence.
+- Indicator values are printed with higher precision to avoid masking small but meaningful changes.
+- This design reflects **production-grade streaming systems**, where early values are intentionally suppressed to prevent misleading signals.
