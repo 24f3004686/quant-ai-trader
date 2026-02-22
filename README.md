@@ -129,3 +129,41 @@ http://127.0.0.1:8000/docs
 Analyze any asset:
 
 http://127.0.0.1:8000/analyze?symbol=BTC-USD
+
+## 🔴 Real-Time Crypto Market Streaming (WebSockets)
+
+In addition to historical backtesting, this project supports **true real-time, event-driven market analysis** for cryptocurrencies.
+
+### How it works
+- Connects to **Binance public WebSocket streams**
+- Receives live trade events in real time (seconds-level latency)
+- Maintains a rolling price window
+- Updates RSI and MACD indicators on each market event
+- Avoids polling by using an **event-driven architecture**
+
+### Why this matters
+- Demonstrates real-world trading system design
+- Shows understanding of low-latency data ingestion
+- Complements historical backtesting with live market monitoring
+
+> AI-based analysis is intentionally rate-limited to avoid excessive API calls and to reflect production-grade system design.
+## 2️⃣ Add a How to Run Real-Time Stream section
+
+## 📡 Running Real-Time Crypto Stream (Binance)
+
+This module streams live cryptocurrency prices using WebSockets.
+
+### Run live BTC stream
+bash
+
+python realtime/binance_stream.py
+
+---
+
+## 🧠 System Design Notes
+
+- Historical analysis and real-time streaming are implemented as **separate modules**
+- Backtesting uses historical market data to avoid lookahead bias
+- Real-time analysis uses an **event-driven WebSocket architecture**
+- AI (LLM) calls are decoupled and rate-limited for scalability
+- The system is designed for extensibility (additional exchanges, assets, or strategies)
